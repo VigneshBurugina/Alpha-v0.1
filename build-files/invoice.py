@@ -101,7 +101,7 @@ data_dict = {}
 _slcount = 0
 
 if argv[1] in ['help','HELP']:
-    webbrowser.open('Link',2)
+    webbrowser.open('https://github.com/VigneshBurugina/Alpha-v0.1',2)
 
 if len(argv) == 1:
     for i in range(6):
