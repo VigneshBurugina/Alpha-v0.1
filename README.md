@@ -22,4 +22,4 @@ Save the text file and copy the path
 
 Then on your terminal, enter the command:
 
-create-invoice {path to text file}
+create-invoice '{path to text file}'
