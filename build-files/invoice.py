@@ -15,7 +15,7 @@ import webbrowser
 
 def gen(a,b):
     """Fills template form and generates invoice"""
-    
+
     def set_need_appearances_writer(writer):
         try:
             catalog = writer._root_object
@@ -25,13 +25,13 @@ def gen(a,b):
 
             need_appearances = NameObject("/NeedAppearances")
             writer._root_object["/AcroForm"][need_appearances] = BooleanObject(True)
-            
+
         except Exception as e:
             print('set_need_appearances_writer() catch : ', repr(e))
 
         return writer
-    
-    outfile = f'{home}/Documents/Invoices/{b}.pdf' 
+
+    outfile = f'{home}/Documents/Invoices/{b}.pdf'
     input_stream = open(template, "rb")
     pdf_reader = PyPDF2.PdfFileReader(input_stream, strict=False)
     if "/AcroForm" in pdf_reader.trailer["/Root"]:
@@ -58,7 +58,7 @@ def gen(a,b):
     input_stream.close()
     with open(outfile,'wb') as fl:
         fl.write(output_stream.getvalue())
- 
+
 
 def calc():
     global data_dict
@@ -98,38 +98,52 @@ home = os.environ['HOME']
 template = f'{home}/Templates/Invoice.pdf'
 mainl = []
 data_dict = {}
-_slcount = 0
+_slcount = 1
 
-if argv[1] in ['help','HELP']:
-    webbrowser.open('https://github.com/VigneshBurugina/Alpha-v0.1',2)
-
-if len(argv) == 1:
+if len(argv) == 1 or argv[1] == '':
     for i in range(6):
-        msg = f'Enter Item {i}:'
         if i == 0:
-            msg = 'Enter Customer Data:'
-            pass
-        mainl.append(input(msg))
+            print("Format: Name,Address,City,PIN,State,Reg. No")
+            msg = input('Enter Customer Data:')
+            mainl.append(msg)
+            print("Format: Item Description,HSN,Quantity,Rate")
+            continue
+        msg = input(f'Enter Item {i}:')
+        if msg == '':
+            for i in range(6-i+1):
+                mainl.append('')
+            break
+        mainl.append(msg)
+elif argv[1] in ['help','HELP']:
+    webbrowser.open('https://github.com/VigneshBurugina/Alpha-v0.1',2)
+    exit()
 else:
     with open(argv[1]) as fl:
         data = fl.readlines()
     for i in data:
         mainl.append(i.rstrip('\n'))
-    
+
 for i in range(7):
-    if i == 0:
-        data_dict['name'],data_dict['address'],data_dict['city'],data_dict['pin'],data_dict['state'],data_dict['regno'] = mainl[i].split(',')
-    elif i < len(mainl):
-        data_dict[f'sl{i}'] = str(_slcount)
-        data_dict[f'desc{i}'],data_dict[f'hsn{i}'],data_dict[f'qty{i}'],data_dict[f'rate{i}'] = mainl[i].split(',')
-        if data_dict[f'rate{i}'] != "" and data_dict[f'qty{i}'] != "":
-            data_dict[f'amount{i}'] = f"{float(data_dict[f'qty{i}'])*float(data_dict[f'rate{i}']):.2f}"
-        elif data_dict[f'rate{i}'] == "" and data_dict[f'qty{i}'] == "":
-            data_dict[f'amount{i}'] = ""
-            data_dict[f'sl{i}'] = ""
-            _slcount += 1
-    else:
-        data_dict[f'sl{i}'],data_dict[f'desc{i}'],data_dict[f'hsn{i}'],data_dict[f'qty{i}'],data_dict[f'rate{i}'],data_dict[f'amount{i}'] = ",,,,,".split(',')
+    try:
+        if i == 0:
+            data_dict['name'],data_dict['address'],data_dict['city'],data_dict['pin'],data_dict['state'],data_dict['regno'] = mainl[i].split(',')
+        elif mainl[i] == '':
+            data_dict[f'sl{i}'],data_dict[f'desc{i}'],data_dict[f'hsn{i}'],data_dict[f'qty{i}'],data_dict[f'rate{i}'],data_dict[f'amount{i}'] = ",,,,,".split(',')
+        elif mainl[i] != [] and i < len(mainl):
+            data_dict[f'sl{i}'] = str(_slcount)
+            data_dict[f'desc{i}'],data_dict[f'hsn{i}'],data_dict[f'qty{i}'],data_dict[f'rate{i}'] = mainl[i].split(',')
+            if data_dict[f'rate{i}'] != "" and data_dict[f'qty{i}'] != "":
+                data_dict[f'amount{i}'] = f"{float(data_dict[f'qty{i}'])*float(data_dict[f'rate{i}']):.2f}"
+                _slcount += 1
+            elif data_dict[f'rate{i}'] == "" and data_dict[f'qty{i}'] == "":
+                data_dict[f'amount{i}'] = ""
+                data_dict[f'sl{i}'] = ""
+                _slcount += 1
+        else:
+            data_dict[f'sl{i}'],data_dict[f'desc{i}'],data_dict[f'hsn{i}'],data_dict[f'qty{i}'],data_dict[f'rate{i}'],data_dict[f'amount{i}'] = ",,,,,".split(',')
+    except:
+        print("Invalid Entry/Format, Try Again")
+        exit(1);
 
 data_dict['total_amount'] = calc()
 data_dict['total_amount_words'] = get_words(data_dict['total_amount'])
