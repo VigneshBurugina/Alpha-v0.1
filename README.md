@@ -26,3 +26,9 @@ Then on your terminal, enter the command:
 ```bash
 create-invoice '{path to text file}'
 ```
+
+Else
+```bash
+create-invoice
+```
+and enter data one-by-one
